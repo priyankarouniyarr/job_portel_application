@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "964493204164",
+    "project_id": "jobportel-1e3e7",
+    "storage_bucket": "jobportel-1e3e7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:964493204164:android:a99c3fafb94553f7b4c791",
+        "android_client_info": {
+          "package_name": "com.example.job_portel_application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVLES5QPLy2tO96lEyZ5yTIRQctye1Nnw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
