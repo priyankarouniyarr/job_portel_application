@@ -116,12 +116,12 @@ class JobTile extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                if (job.salary > 0)
-                  Text(
-                    '${job.salary.toStringAsFixed(0)} Npr',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                if (job.salary > 0) const SizedBox(height: 8),
+                // if (job.salary > 0)
+                //   Text(
+                //     '${job.salary.toStringAsFixed(0)} Npr',
+                //     style: const TextStyle(fontWeight: FontWeight.bold),
+                //   ),
+                // if (job.salary > 0) const SizedBox(height: 8),
                 Text(
                   df.format(job.postedAt),
                   style: const TextStyle(fontSize: 11, color: Colors.grey),

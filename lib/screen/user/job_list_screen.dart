@@ -17,25 +17,26 @@ class JobListScreen extends StatefulWidget {
 class _JobListScreenState extends State<JobListScreen> {
   final ScrollController _scrollCtrl = ScrollController();
   final TextEditingController _searchCtrl = TextEditingController();
+  final PageController _pageController = PageController();
 
-  final List<String> sliderTexts = [
+  int currentSlide = 0;
+  String? selectedJobType;
+  String? selectedExperience;
+  String? selectedLocation;
+  String? selectedSalaryRange;
+
+  List<String> sliderTexts = [
     "Find Your Dream Job Today!",
     "Top Companies Are Hiring Now",
     "Boost Your Career with the Right Opportunity",
     "Simple Search. Better Results.",
     "Apply Smarter, Not Harder.",
   ];
-  int currentSlide = 0;
-  final PageController _pageController = PageController();
-
-  // Filters
-  String? selectedJobType;
-  String? selectedExperience;
-  String? selectedLocation;
 
   List<String> jobTypes = ['Full-time', 'Part-time', 'Contract'];
   List<String> experienceLevels = ['Fresher', 'Mid', 'Senior'];
   List<String> locations = ['Onsite', 'Remote', 'Hybrid'];
+  List<String> salaryRanges = ['0-10000', '10000-50000', '50000+'];
 
   @override
   void initState() {
@@ -66,13 +67,8 @@ class _JobListScreenState extends State<JobListScreen> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final jp = Provider.of<JobProvider>(context);
-    final auth = Provider.of<AuthProvider>(context);
-
-    // Apply filters + search
-    final filteredJobs = jp.jobs.where((job) {
+  List<dynamic> _applyFilters(List<dynamic> jobs) {
+    final filteredJobs = jobs.where((job) {
       final query = _searchCtrl.text.toLowerCase();
       final matchesSearch =
           job.title.toLowerCase().contains(query) ||
@@ -87,11 +83,30 @@ class _JobListScreenState extends State<JobListScreen> {
       final matchesLocation =
           selectedLocation == null || job.workLocation == selectedLocation;
 
+      final matchesSalary =
+          selectedSalaryRange == null ||
+          (selectedSalaryRange == '0-10000' && job.salary <= 10000) ||
+          (selectedSalaryRange == '10000-50000' &&
+              job.salary > 10000 &&
+              job.salary <= 50000) ||
+          (selectedSalaryRange == '50000+' && job.salary > 50000);
+
       return matchesSearch &&
           matchesJobType &&
           matchesExperience &&
-          matchesLocation;
+          matchesLocation &&
+          matchesSalary;
     }).toList();
+
+    return filteredJobs;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final jp = Provider.of<JobProvider>(context);
+    final auth = Provider.of<AuthProvider>(context);
+
+    final filteredJobs = _applyFilters(jp.jobs);
 
     return Scaffold(
       appBar: AppBar(
@@ -172,7 +187,7 @@ class _JobListScreenState extends State<JobListScreen> {
       ),
       body: Column(
         children: [
-          // 🔍 Search Bar
+          // Search
           Padding(
             padding: const EdgeInsets.all(12),
             child: TextField(
@@ -198,36 +213,58 @@ class _JobListScreenState extends State<JobListScreen> {
             ),
           ),
 
-          // Filter Dropdowns
+          // Filters + Salary
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: _buildDropdown(
-                    'Job Type',
-                    jobTypes,
-                    selectedJobType,
-                    (val) => setState(() => selectedJobType = val),
-                  ),
+                Row(
+                  children: [
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildDropdown(
+                        'Job Type',
+                        jobTypes,
+                        selectedJobType,
+                        (val) => setState(() => selectedJobType = val),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    Expanded(
+                      child: _buildDropdown(
+                        'Location',
+                        locations,
+                        selectedLocation,
+                        (val) => setState(() => selectedLocation = val),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildDropdown(
-                    'Experience',
-                    experienceLevels,
-                    selectedExperience,
-                    (val) => setState(() => selectedExperience = val),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildDropdown(
-                    'Location',
-                    locations,
-                    selectedLocation,
-                    (val) => setState(() => selectedLocation = val),
-                  ),
+                SizedBox(height: 10),
+                Row(
+                  children: [
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildDropdown(
+                        'Experience',
+                        experienceLevels,
+                        selectedExperience,
+                        (val) => setState(() => selectedExperience = val),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    Expanded(
+                      child: _buildDropdown(
+                        'Salary',
+                        salaryRanges,
+                        selectedSalaryRange,
+                        (val) => setState(() => selectedSalaryRange = val),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -338,6 +375,11 @@ class _JobListScreenState extends State<JobListScreen> {
                                     job.experienceLevel ?? "Fresher",
                                     Colors.orange,
                                   ),
+                                  _infoBox(
+                                    Icons.monetization_on,
+                                    "${job.salary.toStringAsFixed(0)}",
+                                    Colors.purple,
+                                  ),
                                 ],
                               ),
                             ],
@@ -355,7 +397,6 @@ class _JobListScreenState extends State<JobListScreen> {
     );
   }
 
-  // 🔹 Info Box Helper
   Widget _infoBox(IconData icon, String text, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -381,7 +422,6 @@ class _JobListScreenState extends State<JobListScreen> {
     );
   }
 
-  // 🔹 Dropdown helper
   Widget _buildDropdown(
     String hint,
     List<String> options,
